@@ -1,12 +1,14 @@
-#include <TXLib.h>
 #include <stdio.h>
+#include <assert.h>
+#include <string.h>
+#include <math.h>
 
-// количество корней
+// number of roots
 enum roots {
     no_roots, one_root, two_roots, inf_roots
 };
 
-// знаки сравнения
+// signs of comparation
 enum comparations {
     _less, _equal, _more
 };
@@ -16,11 +18,11 @@ struct SquareSolver {
     double b;
     double c;
     roots num_roots;
-    double x1;   // меньший корень
-    double x2;   // больший корень
+    double x1;   // minor root
+    double x2;   // larger root
 };
 
-int Solve_Square (SquareSolver* solver);
+int Solve_Square (SquareSolver* solver); //
 int Solve_Equation (SquareSolver* solver);
 int Solve_Linear (SquareSolver* solver);
 bool Input (SquareSolver* solver);
@@ -30,7 +32,7 @@ int Compare (double chto, double s_chem);
 void UnitTests();
 bool Check(SquareSolver* sollution);
 
-// функция решения всех уравнений --------------------------------------------------------------
+// general function of solving  --------------------------------------------------------------
 
 int Solve_Equation (SquareSolver* solver) {
 
@@ -44,41 +46,43 @@ int Solve_Equation (SquareSolver* solver) {
     return 0;
 }
 
-// функция проверки правильности корней --------------------------------------------------------
+// checking correctness of roots ------------------------------------------------------------
 
 bool Check(SquareSolver* sollution) {
 
      SquareSolver temp_sollution = {sollution->a, sollution->b, sollution->c, no_roots, 0, 0};
      Solve_Equation(&temp_sollution);
+
      if (temp_sollution.num_roots != sollution->num_roots) {
          return false;
      }
-     else if (Compare(temp_sollution.x1, sollution->x1) != _equal || Compare(temp_sollution.x2, sollution->x2) != _equal) {
+
+     if (temp_sollution.num_roots == one_root || sollution->num_roots == two_roots) {
+        if (Compare(temp_sollution.x1, sollution->x1) == _equal && Compare(temp_sollution.x2, sollution->x2) == _equal) {
+            return true;
+        }
         return false;
-     }
-     else {
-        return true;
-     }
+    }
+    return true;
 }
 
-// функция юнит тестирования ------------------------------------------------------------------
+// function for unit testing ------------------------------------------------------------------
 
 void UnitTests() {
 
-     SquareSolver all_sollutions[1] = {{1, -5, 6, two_roots, 2, 3}};
+     SquareSolver all_sollutions[2] = {{1, -5, 6, two_roots, 2, 3}, {567, 678790, 543546789, no_roots, 0, 0}};
 
-     for (int i = 0; i < 1; i++) {
+     for (int i = 0; i < 2; i++) {
         if (!Check(&all_sollutions[i])) {
-            printf("Ошибка в тесте номер %d.\n", i+1);
+            printf("РћС€РёР±РєР° РІ С‚РµСЃС‚Рµ РЅРѕРјРµСЂ %d.\n", i+1);
             return;
         }
 
+        printf("OK\n");
      }
-     printf("OK\n");
-
 }
 
-// функция сравнения переменной типа double с целочисленным значением -------------------------
+// function of comparation double and int  -----------------------------------------------------
 
 int Compare (double chto, double s_chem) {
 
@@ -99,7 +103,7 @@ int Compare (double chto, double s_chem) {
      return result;
 }
 
-// функция расчета дискриминанта -------------------------------------------------------------
+// the function to count discriminant -------------------------------------------------------------
 
 double Discriminant (SquareSolver* solver) {
     double D = 0;
@@ -107,49 +111,49 @@ double Discriminant (SquareSolver* solver) {
     return D;
 }
 
-// функция ввода коэффициентов ---------------------------------------------------------------
+// the function for correct input -----------------------------------------------------------------
 
 bool Input (SquareSolver* solver) {
 
     assert(solver != NULL);
     bool flag = 1;
-    printf("Введите коэффициенты квадратного уравнения в порядке a, b, c:\n");
+    printf("Enter coefficients of square equation: a, b, c:\n");
 
     if (scanf("%lg%lg%lg", &solver->a, &solver->b, &solver->c) == 3) {
         return flag;
     }
 
     else {
-        printf("Некорректный ввод данных.");
+        printf("Incorrect data entry.");
         flag = 0;
         return flag;
     }
 }
 
-// функция вывода ответов --------------------------------------------------------------------
+// function for output ---------------------------------------------------------------------------
 
 int Output(SquareSolver* solver) {
 
      switch (solver->num_roots) {
 
         case no_roots:
-            printf("Уравнение не имеет действительных корней.");
+            printf("This equation has no rational roots.");
             break;
 
         case one_root:
-            printf("Уравнение имеет ровно один действительный корень: ");
+            printf("This equation has one rational root: ");
             printf("%lg", solver->x1);
             break;
 
         case two_roots:
-            printf("Уравнение имеет ровно два действительных корня: ");
+            printf("This equation has two rational roots: ");
             printf("%lg", solver->x1);
-            printf(" и ");
+            printf(" and ");
             printf("%lg", solver->x2);
             break;
 
         case inf_roots:
-            printf("Уравнение имеет бесконечное число корней.");
+            printf("This equation has infinite root.");
             break;
 
         default:
@@ -159,13 +163,14 @@ int Output(SquareSolver* solver) {
      return 0;
 }
 
-// функция решения линейного уравнения -----------------------------------------------------
+// function for solving linear equations --------------------------------------------------------
 
 int Solve_Linear (SquareSolver* solver) {
 
     if (Compare(solver->b, 0) == _equal && Compare(solver->c, 0) != _equal) {
         solver->num_roots = no_roots;
     }
+
     else if (Compare(solver->b, 0) == _equal && Compare(solver->c, 0) == _equal) {
         solver->num_roots = inf_roots;
     }
@@ -178,36 +183,33 @@ int Solve_Linear (SquareSolver* solver) {
     return 0;
 }
 
-// функция решения квадратного уравнения ---------------------------------------------------
+// function for solving square equations -------------------------------------------------------
 
 int Solve_Square (SquareSolver* solver)
 {
 
     double D = 0;
-
     D = Discriminant(solver);
 
     switch (Compare(D, 0)) {
-        case _more:
 
+        case _more:
             solver->num_roots = two_roots;
             solver->x1 = (- solver->b - sqrt(D)) / (2 * (solver->a));
             solver->x2 = (- solver->b + sqrt(D)) / (2 * (solver->a));
             break;
 
         case _less:
-
             solver->num_roots = no_roots;
             break;
 
         case _equal:
-
             solver->num_roots = one_root;
             solver->x1 = (- solver->b - sqrt(D)) / (2 * (solver->a));
+            solver->x2 = (- solver->b - sqrt(D)) / (2 * (solver->a));
             break;
 
         default:
-
             break;
     }
 
@@ -216,15 +218,31 @@ int Solve_Square (SquareSolver* solver)
 
 //-------------------------------------------------------------------------------------------
 
-int main (void)
+int main (int argc, char* argv[])
 {
-    UnitTests();
-    SquareSolver solver = {}; // структура характеристики решаемого квадратного уравнения
+    if (argc == 2) {
+        if (strcmp(argv[1], "--test") == 0) {
+            UnitTests();
 
-    if (Input(&solver)) {;   // если инпут в порядке
+            return 0;
+        }
 
-        Solve_Equation(&solver);
-        Output(&solver);
+        if (strcmp(argv[1], "--solve") == 0) {
+            SquareSolver solver = {}; // struct with characteristics of square equation
+
+            if (Input(&solver)) {;   // if input is okay
+                Solve_Equation(&solver);
+                Output(&solver);
+            }
+
+            return 0;
+        }
+
+        if (strcmp(argv[1], "--help") == 0) {
+             printf("lol ne razobralsya, use --solve or --test"); 
+             return 0;          
+        }
     }
+    printf("usage: *.exe --help");
     return 0;
 }
